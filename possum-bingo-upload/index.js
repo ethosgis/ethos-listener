@@ -45,7 +45,7 @@ module.exports = async function (context, req) {
                 }
 
                 if (!finalName) {
-                    finalName = `upload-${Date.now()}`;
+                    finalName = `NRCPossumBingo_${Date.now()}`;
                 }
 
                 uploadedFilename = finalName;
@@ -83,7 +83,7 @@ module.exports = async function (context, req) {
 
         context.res = {
             status: 200,
-            body: `${uploadedFilename} Received`
+            body: `${uploadedFilename} received. You will receive a confirmation email shortly once the file has been processed.`
         };
     } catch (err) {
         context.res = {
