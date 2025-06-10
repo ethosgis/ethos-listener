@@ -9,6 +9,7 @@
   "dependencies": {
     "@azure/functions": "^4.0.0",
     "@azure/storage-blob": "^12.27.0",
+    "axios": "^1.9.0",
     "busboy": "^1.6.0",
     "dotenv": "^16.5.0",
     "multiparty": "^4.2.3"

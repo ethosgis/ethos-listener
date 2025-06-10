@@ -13,6 +13,7 @@
     "version": "[4.*, 5.0.0)"
   },
    "functions": [
-    "file-upload"
+    "file-upload",
+    "possum-bingo-upload"
   ]
 }
