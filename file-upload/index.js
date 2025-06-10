@@ -3,11 +3,6 @@ const Busboy = require('busboy');
 const { Readable } = require('stream');
 require('dotenv').config();
 
-function extractFilenameFromDisposition(header) {
-    const match = /filename="(.+?)"/.exec(header);
-    return match ? match[1] : null;
-}
-
 module.exports = async function (context, req) {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
     const containerName = process.env.BLOB_CONTAINER_NAME;
@@ -34,38 +29,35 @@ module.exports = async function (context, req) {
 
     const busboy = Busboy({ headers: req.headers });
     const fileUploadPromises = [];
+    let uploadedFilename = null;
 
     try {
         await new Promise((resolve, reject) => {
-          busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-    context.log("filename from busboy:", filename);
+            busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+                let finalName = null;
 
-    let finalName = null;
+                if (typeof filename === 'string') {
+                    finalName = filename;
+                } else if (filename && typeof filename === 'object' && typeof filename.filename === 'string') {
+                    finalName = filename.filename;
+                }
 
-    if (typeof filename === 'string') {
-        finalName = filename;
-    } else if (filename && typeof filename === 'object' && typeof filename.filename === 'string') {
-        finalName = filename.filename;
-    }
+                if (!finalName) {
+                    finalName = `upload-${Date.now()}`;
+                }
 
-    if (!finalName) {
-        finalName = `upload-${Date.now()}`;
-    }
+                uploadedFilename = finalName;
+                const blobName = `UserUpload_${finalName}`;
+                const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-    const blobName = `UserUpload_${finalName}`;
-    context.log(`Saving blob: ${blobName} with type ${mimetype}`);
+                const uploadPromise = blockBlobClient.uploadStream(file, undefined, undefined, {
+                    blobHTTPHeaders: {
+                        blobContentType: mimetype || 'application/octet-stream'
+                    }
+                });
 
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-
-    const uploadPromise = blockBlobClient.uploadStream(file, undefined, undefined, {
-        blobHTTPHeaders: {
-            blobContentType: mimetype || 'application/octet-stream'
-        }
-    });
-
-    fileUploadPromises.push(uploadPromise);
-});
-
+                fileUploadPromises.push(uploadPromise);
+            });
 
             busboy.on('finish', async () => {
                 try {
@@ -84,10 +76,9 @@ module.exports = async function (context, req) {
 
         context.res = {
             status: 200,
-            body: "File uploaded successfully with correct name and content type."
+            body: `${uploadedFilename} Received`
         };
     } catch (err) {
-        context.log("Upload error:", err.message);
         context.res = {
             status: 500,
             body: "Upload failed: " + err.message
