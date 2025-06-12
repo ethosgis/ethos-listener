@@ -56,7 +56,7 @@ module.exports = async function (context, req) {
                     blobHTTPHeaders: {
                         blobContentType: mimetype || 'application/octet-stream'
                     },
-                    tier: 'Cool' // Set blob to cold storage
+                    tier: 'Cold' // Set blob to cold storage
                 });
 
                 fileUploadPromises.push(uploadPromise);
@@ -88,7 +88,7 @@ module.exports = async function (context, req) {
     } catch (err) {
         context.res = {
             status: 500,
-            body: "Upload failed: " + err.message
+            body: "Process failed. Something went wrong on the server. Please contact Enric or Willy for assistance."
         };
     }
 };
