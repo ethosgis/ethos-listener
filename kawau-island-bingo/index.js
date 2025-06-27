@@ -75,7 +75,7 @@ module.exports = async function (context, req) {
         });
 
          // ✅ Send blobName to FME webhook after upload
-         const webhookUrl = 'replacewithwebhook';
+         const webhookUrl = 'https://fme.ethosgis.com/fmerest/v3/automations/workflows/555a990c-21b1-4d83-b9bc-52cc98960b0d/fcb52836-5e08-8ff0-9e86-352fd2655108/message';
          await axios.post(webhookUrl, { blobName });
  
          context.res = {
