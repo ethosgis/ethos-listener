@@ -31,7 +31,7 @@ module.exports = async function (context, req) {
     const busboy = Busboy({ headers: req.headers });
     const fileUploadPromises = [];
     let uploadedFilename = null;
-
+    let blobName = null;
     try {
         await new Promise((resolve, reject) => {
             busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
@@ -44,7 +44,7 @@ module.exports = async function (context, req) {
                 }
 
                 if (!finalName) {
-                    finalName = `upload-${Date.now()}`;
+                    finalName = `KawauWallabyBingo_${Date.now()}`;
                 }
 
                 uploadedFilename = finalName;
@@ -54,7 +54,8 @@ module.exports = async function (context, req) {
                 const uploadPromise = blockBlobClient.uploadStream(file, undefined, undefined, {
                     blobHTTPHeaders: {
                         blobContentType: mimetype || 'application/octet-stream'
-                    }
+                    },
+                    tier: 'Cold' // Set blob to cold storage
                 });
 
                 fileUploadPromises.push(uploadPromise);
