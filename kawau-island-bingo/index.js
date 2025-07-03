@@ -48,7 +48,7 @@ module.exports = async function (context, req) {
                 }
 
                 uploadedFilename = finalName;
-                const blobName = `KawauWallabyBingo_${finalName}`;
+                blobName = `KawauWallabyBingo_${finalName}`;
                 const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
                 const uploadPromise = blockBlobClient.uploadStream(file, undefined, undefined, {
