@@ -7,6 +7,3 @@ added the wallaby bingo route
 
 
 
-
-
-
