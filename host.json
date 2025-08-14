@@ -14,6 +14,7 @@
   },
   "functions": [
     "file-upload",
+    "data-upload",
     "possum-bingo-upload",
     "kawau-island-bingo",
     "PFK-possum-bingo-upload"
