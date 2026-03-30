@@ -1,6 +1,7 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
 const Busboy = require('busboy');
 const { Readable } = require('stream');
+const axios = require('axios');
 require('dotenv').config();
 
 module.exports = async function (context, req) {
@@ -29,6 +30,7 @@ module.exports = async function (context, req) {
 
     const busboy = Busboy({ headers: req.headers });
     const fileUploadPromises = [];
+    const uploadedBlobNames = [];
     let uploadedFilename = null;
 
     try {
@@ -48,12 +50,14 @@ module.exports = async function (context, req) {
 
                 uploadedFilename = finalName;
                 const blobName = `UserUpload_${finalName}`;
+                uploadedBlobNames.push(blobName);
                 const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
                 const uploadPromise = blockBlobClient.uploadStream(file, undefined, undefined, {
                     blobHTTPHeaders: {
                         blobContentType: mimetype || 'application/octet-stream'
-                    }
+                    },
+                    tier: 'Cold'
                 });
 
                 fileUploadPromises.push(uploadPromise);
@@ -73,6 +77,14 @@ module.exports = async function (context, req) {
             const bodyStream = Readable.from(req.rawBody);
             bodyStream.pipe(busboy);
         });
+
+        const webhookUrl = 'https://fme-ethosgis.fmecloud.com/fmeapiv4/automations/e14809b1-5e85-4be8-811a-b39de49fcc51/1c79bb70-7a07-6fee-80df-c31463a8c4ff/message';
+        // Only push to the FME webhook for blobs named like UserUpload_KICamCat...
+        const kICamCatBlobNames = uploadedBlobNames.filter((name) => name.startsWith('UserUpload_KICamCat'));
+
+        for (const blobName of kICamCatBlobNames) {
+            await axios.post(webhookUrl, { blobName });
+        }
 
         context.res = {
             status: 200,
